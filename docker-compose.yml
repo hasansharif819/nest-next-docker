@@ -1,31 +1,51 @@
+# version: "3.8"
+# services:
+#   backend:
+#     build: ./backend
+#     container_name: backend
+#     ports:
+#       - "5000:5000"
+#     volumes:
+#       - ./backend:/app
+#       - /app/node_modules
+#     depends_on:
+#       - db
+#     env_file:
+#       - ./backend/.env
+#     command: npm run start:dev
+
+#   frontend:
+#     build: ./frontend
+#     container_name: frontend
+#     ports:
+#       - "3000:3000"
+#     volumes:
+#       - ./frontend:/app
+#       - /app/node_modules
+#     depends_on:
+#       - backend
+#     command: npm run dev
+
+#   db:
+#     image: postgres:latest
+#     container_name: db
+#     restart: always
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+#       POSTGRES_DB: nest_db
+#     ports:
+#       - "5433:5432"
+#     mem_limit: 512m
+#     volumes:
+#       - pgdata:/var/lib/postgresql/data
+
+# volumes:
+#   pgdata:
+
 version: "3.8"
+
 services:
-  backend:
-    build: ./backend
-    container_name: backend
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    depends_on:
-      - db
-    env_file:
-      - ./backend/.env
-    command: npm run start:dev
-
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    depends_on:
-      - backend
-    command: npm run dev
-
   db:
     image: postgres:latest
     container_name: db
@@ -35,10 +55,37 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: nest_db
     ports:
-      - "5433:5432"
-    mem_limit: 512m
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: backend
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/nest_db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "5000:5000"
+    command: npm run start:dev
+    restart: always
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    restart: always
 
 volumes:
   pgdata:
